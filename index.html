@@ -36,9 +36,11 @@
     });
 
     async function requestPersistentStoragePermission() {
-      const { state } = await navigator.permissions.query({ name: "persistent-storage" });
-      if (state === "granted") {
-        return true;
+      if ("permissions" in navigator && "query" in navigator.permissions) {
+        const { state } = await navigator.permissions.query({ name: "persistent-storage" });
+        if (state === "granted") {
+          return true;
+        }
       }
       
       const isQuotaEstimated = await navigator.storage.estimate();
