@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Persistent Storage Permission Demo</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+  </style>
+</head>
+<body>
+  <h1>Persistent Storage Permission Demo</h1>
+  <button id="requestPermission">Request Persistent Storage Permission</button>
+  <p id="status"></p>
+
+  <script>
+    document.querySelector("#requestPermission").addEventListener("click", async () => {
+      if (!("storage" in navigator && "persist" in navigator.storage)) {
+        updateStatus("Persistent Storage API is not supported in your browser.");
+        return;
+      }
+
+      const isPersisted = await navigator.storage.persisted();
+      if (isPersisted) {
+        updateStatus("Persistent storage permission is already granted.");
+      } else {
+        const granted = await requestPersistentStoragePermission();
+        if (granted) {
+          updateStatus("Persistent storage permission granted.");
+        } else {
+          updateStatus("Persistent storage permission denied.");
+        }
+      }
+    });
+
+    async function requestPersistentStoragePermission() {
+      const { state } = await navigator.permissions.query({ name: "persistent-storage" });
+      if (state === "granted") {
+        return true;
+      }
+      
+      const isQuotaEstimated = await navigator.storage.estimate();
+      if (isQuotaEstimated.usage / isQuotaEstimated.quota < 0.8) {
+        const isPersisted = await navigator.storage.persist();
+        return isPersisted;
+      }
+
+      return false;
+    }
+
+    function updateStatus(message) {
+      document.querySelector("#status").textContent = message;
+    }
+  </script>
+</body>
+</html>
